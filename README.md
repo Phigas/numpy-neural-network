@@ -8,15 +8,19 @@ The math is based on [this course](https://youtu.be/CS4cs9xVecg) by [Dr. Andrew 
 
 Variables
 
-- $x^{i}\in\R^{n_x}$ is one input example
-- $X\in\R^{n_x\times m}$ is all input examples
-- $y^{i}\in\R$ is one true label
-- $Y\in\R^{1\times m}$ is all labels
-- $\hat{y}^{i}\in\R$ is one predicted label
-  - mathematically defined as $\hat{y}=P(y=1|x)$
-- $\hat Y^{i}\in\R^{1\times m}$ are all predicted labels
-- $b\in\R$
-- $\omega\in\R^{1\times n_x}$
+- $x^{(i)}\in\R^{n_x}$ is the ith input example
+- $y^{(i)}\in\R$ is the ith true label
+- $\hat{y}^{(i)}\in\R$ is the ith predicted label
+- $b^{[i]}_j\in\R$ are the biases of the jth node of the ith layer
+- $\omega^{[i]}_j\in\R^{1\times n_x}$ are the weights of jth node of the ith layer
+- $n^{[i]}\in\R$ is the number of nodes of the ith layer
+
+Dimension example of one layer computation:
+
+- 4 nodes in layer and 3 input nodes to layer
+- $z\in\R^{4\times 1}$, $W\in\R^{4\times 3}$, $x\in\R^{3\times 1}$, $b\in\R^{4\times 1}$
+- $z = Wx+b$ no transpose because the $\omega$ vectors are in $W$ horizontally
+- when vectorizing with batch size 5: $z\rightarrow Z\in\R^{4\times 5}$, $x\rightarrow X\in\R^{3\times 5}$, $b \rightarrow B\in\R^{4\times 5}$
 
 Functions
 
