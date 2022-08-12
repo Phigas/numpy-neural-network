@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Callable
 
 class Function:
     def __init__(self, run, derivate) -> None:
@@ -19,13 +18,22 @@ class Layer:
         self.activation = activation
 
     def forward_pass(self, X) -> np.ndarray:
-        Z = np.dot(self.weights, X) + self.b
-        Y = self.activation.run(Z)
-        return Y
+        self.Z = np.dot(self.weights, X) + self.b
+        self.a = self.activation.run(self.Z) # possible to avoid keeping a saved by recalculating it
+        return self.a
     
-    def backwards_pass(self, learning_rate):
-        d_w = 0
+    def backwards_pass(self, learning_rate, d_a):
+        d_z = d_a * self.activation.derivate(self.Z)
+        
+        new_d_a = d_z * self.weights
+        
+        d_w = np.dot(d_z, self.a.T)
         self.weights -= learning_rate * d_w
+        
+        d_b = d_z
+        self.b -= learning_rate * d_b
+        
+        return new_d_a
 
 class NeuralNetwork:
     def __init__(self, learning_rate, cost_function) -> None:
@@ -50,11 +58,17 @@ class NeuralNetwork:
             else:
                 raise Exception('Layer does not match previous layer')
 
-    def train_step(self, X):
+    def train_step(self, X, Y):
         X = self.predict(X)
         
+        loss = self.cost.run(X, Y)
+        
+        d_a = self.cost.derivative(X, Y)
+        
         for layer in self.layers[::-1]:
-            X = layer.backwards_pass(self.learning_rate)
+            d_a = layer.backwards_pass(self.learning_rate, d_a)
+            
+        return loss
     
     def predict(self, X):
         for layer in self.layers:
@@ -62,5 +76,9 @@ class NeuralNetwork:
         return X
     
 if __name__ == '__main__':
-    print((np.random.rand(30, 40)*0.5)-0.25)
+    sigma = lambda x: 1/(1+np.exp(-x))
+    sigma_d = lambda x: np.exp(-x)/(1+np.exp(-x))**2
+    sigmoid = Function(sigma, sigma_d)
+    
+    print(sigmoid.derivate(0))
     
