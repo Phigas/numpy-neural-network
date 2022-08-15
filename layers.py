@@ -25,7 +25,11 @@ class Layer:
     
     def backwards_pass(self, learning_rate, d_a):
         d_a = d_a.T
-        d_z = d_a * self.activation.derivate(self.Z)
+        
+        # primitive gradient clipping
+        clipped_Z = np.clip(self.Z, -600, 600)
+        
+        d_z = d_a * self.activation.derivate(clipped_Z)
     
         new_d_a = np.dot(d_z.T, self.weights)
         
@@ -83,7 +87,7 @@ if __name__ == '__main__':
     # ==================================================
     
     sigma = lambda x: 1/(1+np.exp(-x))
-    sigma_d = lambda x: np.exp(-x)/(1+np.exp(-x))**2
+    sigma_d =  lambda x: np.exp(-x)/(1+np.exp(-x))**2
     sigmoid = Function(sigma, sigma_d)
     
     def cost(Y, Yhat):
@@ -126,26 +130,70 @@ if __name__ == '__main__':
     nn.add_layer(Layer((700, BATCH_SIZE), 400, sigmoid))
     nn.add_layer(Layer((400, BATCH_SIZE), 10, sigmoid))
 
-    TRAIN_STEPS = 100
+    TRAIN_STEPS = 50
     
     costs = []
-    i = 0
+    i = 1
     
     for example in tfds.as_numpy(ds):
-        print(f'=== running step: {i}')
+        print(f'--> running step: {i}', end='\r')
+        
+        # learning rate schedule
+        if i == 25 or i == 50 or i == 75:
+            nn.learning_rate /= 10
+            print(f'====== setting learning rate to {nn.learning_rate}')
+        
         image, label = example["image"], example["label"]
+        
+        # preprocessing
         image = np.resize(image, (BATCH_SIZE, 28*28))
         image = np.moveaxis(image, [0,1], [1,0])
+        
         label_vec = np.zeros((10, BATCH_SIZE))
         for u, l in enumerate(label):
             label_vec[l, u] = 1
+            
+        # correct datatypes
+        image = image.astype(np.float64)
         
         cos = nn.train_step(image, label_vec)
-        print(f'=== cost of step was {cos}')
+        print(f'=== cost of step {i} was {cos}     ')
         costs.append(cos)
         
-        i += 1
         if i == TRAIN_STEPS:
             break
+        i += 1
+    print()
+    
+    from matplotlib import pyplot as plt
+
+    plt.plot(costs)
+    plt.show()
+
+    # ==================================================
+    # evaluating
+    # ==================================================
+    
+    for example in tfds.as_numpy(ds):
+        print(f'=== evaluating image')
+        image, label = example["image"], example["label"]
+
+        print(f'=== this image is an {label}')
         
-print(costs) 
+        f, ax = plt.subplots(2,2)
+        ax[0,0].imshow(image[0], cmap='gray')
+        ax[0,1].imshow(image[1], cmap='gray')
+        ax[1,0].imshow(image[2], cmap='gray')
+        ax[1,1].imshow(image[3], cmap='gray')
+        
+        # preprocessing
+        image_nn = np.resize(image, (BATCH_SIZE, 28*28))
+        image_nn = np.moveaxis(image_nn, [0,1], [1,0])
+
+        pred = nn.predict(image_nn)
+        print(pred)
+        
+        plt.show()
+        
+        if input('continue? ') == 'n':
+            break

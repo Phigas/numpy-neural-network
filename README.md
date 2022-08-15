@@ -46,8 +46,8 @@ Computing graph
 ## planned features
 
 - [ ] layer base class
-- [ ] FC layer
+- [x] FC layer
 - [ ] convolution layer
-- [ ] gradient descent
+- [x] gradient descent
 - [ ] momentum
 - [ ] GAN or LSTM
