@@ -13,7 +13,7 @@ class Layer:
         
         # needs initialization
         self.weights = (np.random.rand(self.n, self.n_in)*0.5)-0.25
-        self.b = np.zeros((self.n, self.m))
+        self.b = np.zeros((self.n, 1))
 
         self.activation = activation
 
